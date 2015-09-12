@@ -7,39 +7,29 @@ var assert  = yeoman.assert;
 var fs      = require('fs');
 var test    = require('./helper.js');
 
+var config = [
+  '{',
+  '  "generator-backbone": {',
+  '    "appPath": "app",',
+  '    "appName": "Temp",',
+  '    "includeRequireJS": "true"',
+  '  }',
+  '}'
+].join('\n');
+
 describe('Backbone generator with RequireJS', function () {
+
   beforeEach(function (done) {
-    helpers.testDirectory(path.join(__dirname, './temp'), function (err) {
-      if (err) {
-        return done(err);
-      }
-      this.backbone = {};
-      this.backbone.app = test.createAppGenerator();
-
-      helpers.mockPrompt(this.backbone.app, {
-        features: ['sassBootstrap', 'requirejs']
-      });
-
-      var out = [
-        '{',
-        '  "generator-backbone": {',
-        '    "appPath": "app",',
-        '    "appName": "Temp"',
-        '  }',
-        '}'
-      ];
-      fs.writeFileSync('.yo-rc.json', out.join('\n'));
-
-      done();
-    }.bind(this));
-
+    var prompts = {
+      features: ['sassBootstrap', 'requirejs']
+    };
+    test.createAppGenerator(config, prompts, done);
   });
 
   describe('creates expected files', function () {
-    it('with sassBootstrap', function (done) {
+    it('with sassBootstrap', function () {
       var expectedContent = [
         ['bower.json', /("name": "temp")(|.|\n)*(requirejs)/],
-        ['package.json', /"name": "temp"/],
         ['app/index.html', /(Bootstrap)(|.|\n)*(RequireJS)/i],
         ['app/scripts/main.js', /bootstrap/]
       ];
@@ -55,18 +45,14 @@ describe('Backbone generator with RequireJS', function () {
         '.editorconfig'
       ];
 
-      this.backbone.app.run({}, function () {
-        assert.file(expected);
-        assert.fileContent(expectedContent);
-        done();
-      });
+      assert.file(expected);
+      assert.fileContent(expectedContent);
 
     });
 
-    it('without sassBootstrap', function (done) {
+    it('without sassBootstrap', function () {
       var expectedContent = [
         ['bower.json', /("name": "temp")(|.|\n)*(requirejs)/],
-        ['package.json', /"name": "temp"/],
         ['Gruntfile.js', /requirejs/],
         ['app/index.html', /(RequireJS)/i]
       ];
@@ -84,63 +70,52 @@ describe('Backbone generator with RequireJS', function () {
         'package.json'
       ];
 
-      this.backbone.app.run({}, function () {
-        assert.file(expected);
-        assert.fileContent(expectedContent);
-        done();
-      });
+      assert.file(expected);
+      assert.fileContent(expectedContent);
     });
   });
 
   describe('creates model', function () {
     it('without failure', function (done) {
-      this.backbone.app.run({}, function () {
-        test.createSubGenerator('model', function () {
-          assert.fileContent(
-            'app/scripts/models/foo.js', /var FooModel = Backbone.Model.extend\(\{/
-          );
-          done();
-        });
+      test.createSubGenerator(config, 'model', function () {
+        assert.fileContent(
+          'app/scripts/models/foo.js', /var FooModel = Backbone.Model.extend\(\{/
+        );
+        done();
       });
     });
   });
 
   describe('creates collection', function () {
     it('without failure', function (done) {
-      this.backbone.app.run({}, function () {
-        test.createSubGenerator('collection', function () {
-          assert.fileContent(
-            'app/scripts/collections/foo.js', /var FooCollection = Backbone.Collection.extend\(\{/
-          );
-          done();
-        });
+      test.createSubGenerator(config, 'collection', function () {
+        assert.fileContent(
+          'app/scripts/collections/foo.js', /var FooCollection = Backbone.Collection.extend\(\{/
+        );
+        done();
       });
     });
   });
 
   describe('creates router', function () {
     it('without failure', function (done) {
-      this.backbone.app.run({}, function () {
-        test.createSubGenerator('router', function () {
-          assert.fileContent(
-            'app/scripts/routes/foo.js', /var FooRouter = Backbone.Router.extend\(\{/
-          );
-          done();
-        });
+      test.createSubGenerator(config, 'router', function () {
+        assert.fileContent(
+          'app/scripts/routes/foo.js', /var FooRouter = Backbone.Router.extend\(\{/
+        );
+        done();
       });
     });
   });
 
   describe('creates backbone view', function () {
     it('without failure', function (done) {
-      this.backbone.app.run({}, function () {
-        test.createSubGenerator('view', function () {
-          assert.fileContent(
-            'app/scripts/views/foo.js', /var FooView = Backbone.View.extend\(\{(.|\n)*app\/scripts\/templates\/foo.ejs/
-          );
-          assert.file('app/scripts/templates/foo.ejs');
-          done();
-        });
+      test.createSubGenerator(config, 'view', function () {
+        assert.fileContent(
+          'app/scripts/views/foo.js', /var FooView = Backbone.View.extend\(\{(.|\n)*app\/scripts\/templates\/foo.ejs/
+        );
+        assert.file('app/scripts/templates/foo.ejs');
+        done();
       });
     });
   });
